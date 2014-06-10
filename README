@@ -1,3 +1,2 @@
-#PTP Chat Service
-## Overview
-ptp chat service is one of the chat protocol written in python. 
+## PTP Chat Service
+PTP Chat service is a service-client based chat program that is written in python. The server uses GAE to publish the ip address and descriptions on the site http://ptpchatip.appspot.com/
