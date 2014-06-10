@@ -16,9 +16,9 @@ PORT = 5000         # Set 5000 as default chat port
 RECV_DATA = None
 
 def prompt() :
-    sys.stdout.write('<{}> '.format(name))
+    sys.stdout.write('\x1b[36m<{}> '.format(name))
     sys.stdout.flush()
-
+    sys.stdout.write("\033[0m")
 
 def download_addr(hostname):
     global HOST
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # Register on server
     cmd = protocol.CMDMessage(name, {"register": name})
-    s.send(cmd.dump().encode())
+    s.send(cmd.dump())
 
     print ('Connected to remote host. Start sending messages as <{}>'.format(name))
     prompt()
@@ -78,15 +78,15 @@ if __name__ == "__main__":
                     sys.exit()
                 else :
                     #print data
-                    js = json.loads(data.decode().strip('\n'))
+                    js = json.loads(protocol.decompress(data))
 
                     # If incoming message is a standard message
                     if js["type"] == "s_message":
-                        print("\n<{}>: {}".format(js["sender"], js["content"]["text"]), end='')
+                        print("\n<{}>: {}".format(js["sender"], js["content"]["text"], end=''))
                         prompt()
              
             #user entered a message
             else :
-                msg = protocol.STDMessage(name, sys.stdin.readline())
-                s.send(msg.dump().encode())
+                msg = protocol.STDMessage(name, sys.stdin.readline().strip('\n'))
+                s.send(msg.dump())
                 prompt()

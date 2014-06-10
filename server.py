@@ -20,13 +20,13 @@ RECV_DATA = None
 SERVER_SOCKET = None
 
 def prompt() :
-    sys.stdout.write('<Server> ')
+    sys.stdout.write('\x1b[36m<Server> ')
     sys.stdout.flush()
+    sys.stdout.write("\033[0m")
 
 def server_message():
     while 1:
-        msg = sys.stdin.readline()
-        broadcast_message(None, "Server", msg)
+        broadcast_message(None, "Server", sys.stdin.readline().strip('\n'))
         prompt()
 
 def alive_message_test():
@@ -70,7 +70,7 @@ def broadcast(sock, message):
         # Do not send the message to master socket and the client who has sent us the message
         if client != SERVER_SOCKET and client != sock:
             try:
-                client.send(message.dump().encode())
+                client.send(message.dump())
             except Exception as e:
                 #print("failed to send to {}: {}".format(get_name(sock), e))
                 # Broken socket connection:
@@ -86,7 +86,7 @@ def broadcast_message(sock, sender, message):
             msg = protocol.STDMessage(sender, message)
             try:
                 #js = json.dumps({"sender": sender, "message": message})
-                client.send(msg.dump().encode())
+                client.send(msg.dump())
             except Exception as e:
                 print("failed to send to {}: {}".format(get_name(sock), e))
                 # Broken socket connection:
@@ -126,12 +126,14 @@ def message_listening():
                 try:
                     RECV_DATA = sock.recv(RECV_BUFFER)
                     if RECV_DATA:
-                        js = json.loads(RECV_DATA.decode().strip('\n'))
+                        js = json.loads(protocol.decompress(RECV_DATA))
+
                         # test if it's the register info
                         if js["type"] == "cmd_message":
                             process_command(sock, js["content"])
                         else:
-                            print("\n<{}>: {}".format(js["sender"], js["content"]["text"]),end='')
+                            print("\n<{}>: {}".format(js["sender"], js["content"]["text"],end=''))
+                            print("CompressRate: {}".format(len(RECV_DATA)/len(protocol.decompress(RECV_DATA))))
                             prompt()
                             broadcast_message(sock, js["sender"], js["content"]["text"])
                         

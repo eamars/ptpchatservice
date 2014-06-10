@@ -26,6 +26,8 @@
 #   sender:                     string type
 #   content:
 #   ....text:                   string type
+#   ....attachments_type        string type
+#   ....attachments_filename    string type
 #   ....attachments:            byte type
 #   checksum:                   md5 type
 #
@@ -38,7 +40,14 @@
 #   ....identifier              string type
 #   checksum:                   md5 type
 
-import json, hashlib
+import json, hashlib, zlib
+
+
+def compress(data, level=9):
+    return zlib.compress(data.encode(), level)
+
+def decompress(data):
+    return zlib.decompress(data).decode()
 
 
 class Message(object):
@@ -57,11 +66,18 @@ class Message(object):
                                                                                     self.__checksum)
 
     def dump(self):
-        return json.dumps({"type": self.__type,
+        return compress(json.dumps({"type": self.__type,
                         "version": self.__version,
                         "sender": self.__sender,
                         "content": self.__content,
-                        "checksum": self.__checksum})
+                        "checksum": self.__checksum}))
+
+    def get(self, name):
+        fullname = "_{}__{}".format(self.__class__.__bases__[0].__name__, name)
+        if fullname in self.__dict__:
+            return self.__dict__[fullname]
+        else:
+            return "Not found"
 
 class STDMessage(Message):
     def __init__(self, sender, text):
@@ -95,4 +111,6 @@ class CMDMessage(Message):
 
 if __name__ == "__main__":
     cmd = CMDMessage("<ME", {"register": "包然"})
-    print(cmd.dump().encode())
+    msg = STDMessage("Server", "This is the message")
+    print(msg.dump())
+
