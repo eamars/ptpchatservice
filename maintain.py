@@ -13,7 +13,7 @@ HOST = "localhost"
 PORT = 5000
 
 def download_addr(hostname):
-    global HOST
+    global HOST, PORT
 
     REMOTE_SERVER_LINK = "http://ptpchatip.appspot.com/search?name={}".format(quote(hostname))
     buff = urlopen(REMOTE_SERVER_LINK)
@@ -25,7 +25,7 @@ def download_addr(hostname):
     except Exception:
         print("Server not found!")
 
-download_addr("Wenjia")
+download_addr("12202")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.settimeout(2)
 
@@ -38,5 +38,5 @@ except:
     sys.exit()
 
 
-cmd = protocol.CMDMessage("Maintainer", {"maintain": "stop"})
-s.send(cmd.dump().encode())
+cmd = protocol.CMDMessage("Maintainer", {"maintain": "stats"})
+s.send(cmd.dump())

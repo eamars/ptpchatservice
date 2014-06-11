@@ -3,6 +3,7 @@ from threading import Thread
 import protocol
 import sys
 import time
+import math
 if sys.version_info < (3, 0):
     from urllib2 import urlopen
     from urllib2 import quote
@@ -26,7 +27,7 @@ def prompt() :
 
 def server_message():
     while 1:
-        broadcast_message(None, "Server", sys.stdin.readline().strip('\n'))
+        broadcast_message(None, "Server", "\x1b[32m" + sys.stdin.readline().strip('\n') + "\033[0m")
         prompt()
 
 def alive_message_test():
@@ -49,9 +50,9 @@ def process_command(sock, json_string):
         if "register" in json_string["command"]:
             register(sock, json_string["command"])
         if "maintain" in json_string["command"]:
-            server_commands(json_string["command"])
+            server_commands(sock, json_string["command"])
 
-def server_commands(json_string):
+def server_commands(sock, json_string):
     if json_string["maintain"] == "stop":
         thread1.exit()
         thread2.exit()
@@ -60,6 +61,8 @@ def register(sock, json_string):
     if sock not in NICKNAME_DICT:
         NICKNAME_DICT[sock] = json_string["register"]
         print(" --register as <{}>".format(json_string["register"]))
+        broadcast_message(sock, "Server", "\x1b[32mClient <{}> online\033[0m".format(get_name(sock)))
+
     else:
         print("<{}> changed his/her name to <{}>", NICKNAME_DICT[sock], json_string["register"])
         NICKNAME_DICT[sock] = json_string["register"]
@@ -88,14 +91,14 @@ def broadcast_message(sock, sender, message):
                 #js = json.dumps({"sender": sender, "message": message})
                 client.send(msg.dump())
             except Exception as e:
-                print("failed to send to {}: {}".format(get_name(sock), e))
+                print("\x1B[31mfailed to send to {}: {}\033[0m".format(get_name(sock), e))
                 # Broken socket connection:
                 # Client disconnect or offline
                 client.close()
                 CONNECTION_LIST.remove(client)
 
 def message_listening():
-    print(" --done")
+    print(" \x1B[32m--done\033[0m")
     global RECV_DATA
     global SERVER_SOCKET
     # initilize the server connecton and bind the port
@@ -108,7 +111,7 @@ def message_listening():
     CONNECTION_LIST.append(SERVER_SOCKET)
 
     print("Chatting service initilized on {}:{}".format(HOST, PORT))
-
+    prompt()
     while 1:
         # Get the list sockets which are ready to be read through select
         read_sockets, write_sockets, error_sockets = select.select(CONNECTION_LIST,[],[])
@@ -119,8 +122,7 @@ def message_listening():
                 # Handle the case in which there is a new connection recieved through server_socket
                 sockfd, addr = SERVER_SOCKET.accept()
                 CONNECTION_LIST.append(sockfd)
-                print ("Client <{}> connected".format(str(addr)), end='')
-
+                print ("\n\x1B[35mClient <{}> connected\033[0m".format(str(addr)), end='')
             # incoming messages from client
             else:
                 try:
@@ -131,38 +133,40 @@ def message_listening():
                         # test if it's the register info
                         if js["type"] == "cmd_message":
                             process_command(sock, js["content"])
+                            prompt()
                         else:
                             print("\n<{}>: {}".format(js["sender"], js["content"]["text"],end=''))
-                            print("CompressRate: {}".format(len(RECV_DATA)/len(protocol.decompress(RECV_DATA))))
+                            print("CompressRate: {}".format(20*math.log10(len(RECV_DATA)/len(protocol.decompress(RECV_DATA)))))
                             prompt()
                             broadcast_message(sock, js["sender"], js["content"]["text"])
                         
                         RECV_DATA = None
                 except:
-                    print("\nClient <{}> offline".format(get_name(sock)))
-                    broadcast_message(sock, "Server", "Client <{}> offline\n".format(get_name(sock)))
+                    print("\n\x1B[35mClient <{}> offline\033[0m".format(get_name(sock)))
+                    broadcast_message(sock, "Server", "\x1B[32mClient <{}> offline\033[0m".format(get_name(sock)))
                     sock.close()
+                    prompt()
                     try:
                         CONNECTION_LIST.remove(sock)
                     except Exception as e:
-                        print("\nERROR: {} not in the list", format(sock))
+                        print("\n\x1B[31mERROR: {} not in the list\033[0m", format(sock))
                     continue
 
     SERVER_SOCKET.close()
 
 def upload_addr():
     GREETINGS = """
-    \033[93mHello Everyone! Welcome to my chat room\033[0m
+    Hello Everyone! Welcome to my chat room
     ---------------------------------------
-    \033[95mRules:
+    Rules:
     (1) Please do not say bad words
     (2) Love each other
-    (3) Have Fun!\033[0m
+    (3) Have Fun!
     ---------------------------------------
-    \033[94mYou need to know:
+    You need to know:
     (1) We do not save your chat history
     (2) The chatting protocol is developed by
-        Ran Bao\033[0m
+        Ran Bao
     """
     SERVER_NAME = "12202"
     REMOTE_SERVER_LINK = "http://ptpchatip.appspot.com/add?name={}&description={}&addr={}&port={}".format(quote(SERVER_NAME), quote(GREETINGS), HOST, PORT)
@@ -172,7 +176,7 @@ def main():
     # Upload the local server ip to ptpchatservice
     print("Uploading Server Details", end='')
     upload_addr()
-    print(" --done")
+    print(" \x1B[32m--done\033[0m")
     print("Intitilizing Chat service", end='')
     message_listening()
 

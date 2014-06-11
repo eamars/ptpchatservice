@@ -110,7 +110,7 @@ class CMDMessage(Message):
         super().__init__(sender, {"command": command, "identifier": nice_hash(str(command))}, "cmd_message")
 
 if __name__ == "__main__":
-    cmd = CMDMessage("<ME", {"register": "包然"})
+    cmd = CMDMessage("Maintainer", {"maintain": "stats"})
     msg = STDMessage("Server", "This is the message")
-    print(msg.dump())
+    print(cmd)
 

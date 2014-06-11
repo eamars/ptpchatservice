@@ -50,7 +50,7 @@ if __name__ == "__main__":
     try :
         s.connect((HOST, PORT))
     except :
-        print ('Unable to connect')
+        print ('\x1B[31mUnable to connect\033[0m')
         sys.exit()
 
     name = sys.argv[2]
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     cmd = protocol.CMDMessage(name, {"register": name})
     s.send(cmd.dump())
 
-    print ('Connected to remote host. Start sending messages as <{}>'.format(name))
+    print ('\x1B[32mConnected to remote host. Start sending messages as <{}>\033[0m'.format(name))
     prompt()
 
     while 1:
@@ -74,7 +74,7 @@ if __name__ == "__main__":
             if sock == s:
                 data = sock.recv(4096)
                 if not data :
-                    print ('\nDisconnected from chat server')
+                    print ('\n\x1B[31mDisconnected from chat server\033[0m')
                     sys.exit()
                 else :
                     #print data
