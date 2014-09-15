@@ -112,5 +112,6 @@ class CMDMessage(Message):
 if __name__ == "__main__":
     cmd = CMDMessage("Maintainer", {"maintain": "stats"})
     msg = STDMessage("Server", "This is the message")
-    print(cmd)
+    print(msg)
+    print(msg.dump())
 

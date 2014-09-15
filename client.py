@@ -41,6 +41,7 @@ if __name__ == "__main__":
         print ('Usage : python3 new_client.py hostname nickname')
         sys.exit()
 
+    
 
     download_addr(sys.argv[1])
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

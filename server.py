@@ -136,7 +136,7 @@ def message_listening():
                             prompt()
                         else:
                             print("\n<{}>: {}".format(js["sender"], js["content"]["text"],end=''))
-                            print("CompressRate: {}".format(20*math.log10(len(RECV_DATA)/len(protocol.decompress(RECV_DATA)))))
+                            print("CompressRate: {}".format(len(RECV_DATA)/len(protocol.decompress(RECV_DATA))))
                             prompt()
                             broadcast_message(sock, js["sender"], js["content"]["text"])
                         
